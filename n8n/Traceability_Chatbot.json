@@ -1,0 +1,248 @@
+{
+  "name": "Traceability_Chatbot",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "query",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "adf0f14a-84e7-466c-be46-5b0e37b5be60",
+      "name": "Webhook",
+      "webhookId": "e08fd277-5481-4cda-8362-91bb1fda4c7b"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Using the available activity data for this session, answer the following question clearly and accurately:\n\n{{ $json.body.query }}\n\nIf activity data already exists in session memory, use it directly.\n\nIf activity data is missing or expired, fetch it once using the tool and then answer.\n\nIf SALUTATION_OR_SMALLTALK:\n- Respond politely in one short sentence\n- DO NOT load session memory\n- DO NOT call any tool",
+        "options": {
+          "systemMessage": "You are a traceability data analysis agent.\n\nYou have access to one tool that fetches activity data for a given userId, stationId, and IMEI.\n\nRules you MUST follow:\n1. Check session memory before calling the tool.\n2. If activity data exists in session memory and is not expired, DO NOT call the tool.\n3. Call the tool ONLY if activity data is missing or sessionControl.isExpired is true.\n4. After calling the tool, store the fetched activity data and a timestamp in session memory.\n5. Always answer strictly using the activity data from session memory.\n6. Treat a new IMEI as a new session.\n7. Never fabricate or assume activity data.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        512,
+        0
+      ],
+      "id": "8a5cd1a4-a72f-4e17-9da3-287cc68e124e",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        448,
+        224
+      ],
+      "id": "adc7e948-612f-420d-903c-aeef1709bc76",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "78sY71BBCCJKa2AD",
+          "name": "Traceability_Open_AI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.body.userId + \"_\" + $json.body.imei }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        576,
+        224
+      ],
+      "id": "5021cac4-f74b-47a5-843a-18a67c65bcca",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        912,
+        0
+      ],
+      "id": "8ffe516e-e408-4b43-be7f-0d9be750732d",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "description": "Call this tool to fetch the data to answer the queries asked by user",
+        "workflowId": {
+          "__rl": true,
+          "value": "ciOdePmeOqWsfboK",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/ciOdePmeOqWsfboK",
+          "cachedResultName": "Sub_trace_bhagwati"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "userId": "={{ $json.body.userId }}",
+            "stationId": "={{ $json.body.stationId }}",
+            "imei": "={{ $json.body.imei }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "userId",
+              "displayName": "userId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "stationId",
+              "displayName": "stationId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "imei",
+              "displayName": "imei",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        704,
+        224
+      ],
+      "id": "3c2db6ba-2f18-447f-9ae9-949e1afa35a7",
+      "name": "Call 'Sub_trace_bhagwati'"
+    },
+    {
+      "parameters": {
+        "jsCode": "const now = Date.now();\nconst TTL = 30 * 60 * 1000; // 30 minutes\n\nconst session = $json.session || {};\nconst lastFetchedAt = session.lastFetchedAt || 0;\n\nconst isExpired = now - lastFetchedAt > TTL;\n\nreturn [{\n  json: {\n    ...$json,\n    sessionControl: {\n      isExpired\n    }\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        0
+      ],
+      "id": "cb49b581-bac4-4c4e-98ec-bf8dc5a0fde4",
+      "name": "Code in JavaScript"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'Sub_trace_bhagwati'": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "c10eea92-2f05-4ca9-8c08-190cf601be9a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "eee8e0f778d1139e12495f8ca71fb6ef9f99b9b75140c0921bdc8ff0f2acc78e"
+  },
+  "id": "dDAWtXtjAg4mDREm",
+  "tags": []
+}

@@ -1,0 +1,295 @@
+{
+  "name": "Sub_trace_bhagwati",
+  "nodes": [
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "86d87815-81a1-4e09-9113-a71c2f8beb16",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "activities",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -432,
+        96
+      ],
+      "id": "44289b92-6c78-4cc3-9ad3-ca18874a3b39",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://172.10.0.74:6001/services/midas/v3/getDparTraceability",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "userId",
+              "value": "={{ $json.userId }}"
+            },
+            {
+              "name": "stationId",
+              "value": "={{ $json.stationId }}"
+            },
+            {
+              "name": "imei",
+              "value": "={{ $json.imei }}"
+            }
+          ]
+        },
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -880,
+        16
+      ],
+      "id": "297e0940-f8f5-4f96-83ed-5c6ce261bbb3",
+      "name": "getdpar"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://172.10.0.74:6001/services/midas/ctdiDparTraceability",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "userId",
+              "value": "={{ $json.userId }}"
+            },
+            {
+              "name": "imei",
+              "value": "={{ $json.imei }}"
+            }
+          ]
+        },
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -208,
+        288
+      ],
+      "id": "48a824b4-5c3a-4042-8466-6c19fe6f8295",
+      "name": "ctdidpar"
+    },
+    {
+      "parameters": {
+        "jsCode": "const output = [];\n\nfor (const item of $input.all()) {\n  const activities = [];\n\n  const dataArr = item.json.data || [];\n\n  for (const entry of dataArr) {\n    const txnId = entry?.mainInfo?.txnId;\n\n    for (const tat of entry?.tatInfo || []) {\n      if (tat.type === \"ACTIVITY\") {\n        activities.push({\n          txnId,\n          activityName: tat.activityName,\n          activityDetailId: tat.activityDetailId,\n        });\n      }\n    }\n  }\n\n  output.push({ json: { activities } });\n}\n\nreturn output;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -656,
+        96
+      ],
+      "id": "25d1d024-cd1a-4f0e-a92b-b5c15aa12553",
+      "name": "extract_activity"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://172.10.0.74:6001/services/midas/v3/getDparTraceabilityActivityInfo",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": " {\"txnId\": 201009,   \"activityDetailId\":581774 ,\n\"activityName\": \"SCAN_IMEI\"\n}",
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -208,
+        96
+      ],
+      "id": "b6011827-a0c5-46e6-b660-17e1045c95bb",
+      "name": "ActivityDpar"
+    },
+    {
+      "parameters": {
+        "jsCode": "const userId = $input.first().json.userId;\nconst stationId =$input.first().json.stationId;\nconst imei = $input.first().json.imei;\n\nreturn [{ json: { userId,stationId,imei } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1104,
+        16
+      ],
+      "id": "6de904f7-40f1-48e6-9aa8-05668630afc1",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "jsCode": "const userId = $input.first().json.userId;\n// const stationId = $json.body.stationId;\nconst imei =$input.first().json.imei;\n\nreturn [{ json: { userId,imei } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -432,
+        288
+      ],
+      "id": "b2079e13-8d0e-43a1-868f-f5465682f7aa",
+      "name": "Code1"
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "userId",
+              "type": "number"
+            },
+            {
+              "name": "stationId",
+              "type": "number"
+            },
+            {
+              "name": "imei",
+              "type": "number"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1328,
+        112
+      ],
+      "id": "bf3c61dc-7e66-4a8b-af8b-0880b5a06665",
+      "name": "When Executed by Another Workflow"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "ActivityDpar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "getdpar": {
+      "main": [
+        [
+          {
+            "node": "extract_activity",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ctdidpar": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "extract_activity": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ActivityDpar": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "getdpar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "ctdidpar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "97cfd1ef-1506-4a04-84f8-1f7d39cf5c93",
+  "meta": {
+    "instanceId": "eee8e0f778d1139e12495f8ca71fb6ef9f99b9b75140c0921bdc8ff0f2acc78e"
+  },
+  "id": "ciOdePmeOqWsfboK",
+  "tags": []
+}
