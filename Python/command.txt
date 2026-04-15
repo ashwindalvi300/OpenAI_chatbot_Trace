@@ -1,0 +1,41 @@
+
+
+ps aux | grep uvicorn
+export HTTPX_USE_IPV6=0
+
+
+
+nohup uvicorn app:app \
+  --host 172.10.0.181 \
+  --port 8050 \
+  --workers 1\
+  > server.log 2>&1 &
+
+
+{
+  "userId": 436,
+  "stationId": "21",
+  "imei": 923923023923101,
+  "query": "hi"
+}
+
+{
+ "userId": 340, 
+ "imei": "352806845528284", 
+ "stationId": 15, 
+ "query": "Provide me all the activities performed on this device." 
+ }
+
+{
+ "userId": 436, 
+ "imei": "357146822129997", 
+ "stationId": 0, 
+ "query": "Provide me all the activities performed on this device." 
+ }
+
+{
+ "userId": 275, 
+ "imei": "455272771872272", 
+ "stationId": 1, 
+ "query": "Provide me all the activities performed on this device." 
+ }

@@ -1,0 +1,28 @@
+nohup: ignoring input
+INFO:     Started server process [533869]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://172.10.0.181:8050 (Press CTRL+C to quit)
+INFO:     172.10.64.130:61548 - "GET / HTTP/1.1" 404 Not Found
+INFO:     172.10.64.130:61548 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     172.10.64.130:61487 - "GET /docs HTTP/1.1" 200 OK
+INFO:     172.10.64.130:61487 - "GET /openapi.json HTTP/1.1" 200 OK
+INFO:     172.10.64.130:61246 - "POST /query HTTP/1.1" 422 Unprocessable Content
+INFO:     172.10.64.130:54685 - "POST /query HTTP/1.1" 200 OK
+INFO:     172.10.64.136:62086 - "GET / HTTP/1.1" 404 Not Found
+INFO:     172.10.64.136:51914 - "GET /docs HTTP/1.1" 200 OK
+INFO:     172.10.64.136:51914 - "GET /openapi.json HTTP/1.1" 200 OK
+INFO:     172.10.64.136:51752 - "POST /query HTTP/1.1" 422 Unprocessable Content
+INFO:     172.10.64.136:55234 - "POST /query HTTP/1.1" 422 Unprocessable Content
+INFO:     172.10.64.136:61030 - "POST /query HTTP/1.1" 422 Unprocessable Content
+INFO:     172.10.64.136:61030 - "POST /query HTTP/1.1" 422 Unprocessable Content
+INFO:     172.10.64.136:64303 - "POST /query HTTP/1.1" 200 OK
+INFO:     172.10.0.241:43670 - "POST /query HTTP/1.1" 200 OK
+INFO:     172.10.0.241:40050 - "POST /query HTTP/1.1" 200 OK
+INFO:     172.10.0.241:52244 - "POST /query HTTP/1.1" 200 OK
+INFO:     172.10.0.241:42924 - "POST /query HTTP/1.1" 200 OK
+INFO:     172.10.0.241:47684 - "POST /query HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [533869]
